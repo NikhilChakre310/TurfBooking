@@ -1,0 +1,381 @@
+datasource db {
+  provider = "postgresql"
+}
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+model Branch {
+  id           String        @id @default(uuid()) @db.Uuid
+  name         String        @db.VarChar(100)
+  address      String
+  phone        String        @db.VarChar(50)
+  email        String        @db.VarChar(255)
+  isActive     Boolean       @default(true) @map("is_active")
+  createdAt    DateTime      @default(now()) @map("created_at") @db.Timestamptz
+  updatedAt    DateTime      @default(now()) @updatedAt @map("updated_at") @db.Timestamptz
+  deletedAt    DateTime?     @map("deleted_at") @db.Timestamptz
+  
+  courts       Court[]
+  blockedDates BlockedDate[]
+  settings     Setting[]
+
+  @@map("branches")
+}
+
+model User {
+  id                 String               @id @default(uuid()) @db.Uuid
+  name               String               @db.VarChar(255)
+  email              String               @unique @db.VarChar(255)
+  passwordHash       String?              @map("password_hash") @db.VarChar(255)
+  phone              String               @db.VarChar(50)
+  isActive           Boolean              @default(true) @map("is_active")
+  createdAt          DateTime             @default(now()) @map("created_at") @db.Timestamptz
+  updatedAt          DateTime             @default(now()) @updatedAt @map("updated_at") @db.Timestamptz
+  deletedAt          DateTime?            @map("deleted_at") @db.Timestamptz
+  
+  userRoles          UserRole[]
+  bookings           Booking[]
+  couponRedemptions  CouponRedemption[]
+  loyaltyTransactions LoyaltyTransaction[]
+  reviews            Review[]
+  notifications      Notification[]
+  auditLogs          AuditLog[]
+
+  @@map("users")
+}
+
+model Role {
+  id        String     @id @default(uuid()) @db.Uuid
+  name      String     @unique @db.VarChar(100)
+  createdAt DateTime   @default(now()) @map("created_at") @db.Timestamptz
+  updatedAt DateTime   @default(now()) @updatedAt @map("updated_at") @db.Timestamptz
+  
+  userRoles UserRole[]
+
+  @@map("roles")
+}
+
+model UserRole {
+  userId String @map("user_id") @db.Uuid
+  roleId String @map("role_id") @db.Uuid
+  
+  user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+  role   Role   @relation(fields: [roleId], references: [id], onDelete: Cascade)
+
+  @@id([userId, roleId])
+  @@map("user_roles")
+}
+
+model Court {
+  id               String            @id @default(uuid()) @db.Uuid
+  branchId         String            @map("branch_id") @db.Uuid
+  name             String            @db.VarChar(100)
+  isActive         Boolean           @default(true) @map("is_active")
+  createdAt        DateTime          @default(now()) @map("created_at") @db.Timestamptz
+  updatedAt        DateTime          @default(now()) @updatedAt @map("updated_at") @db.Timestamptz
+  deletedAt        DateTime?         @map("deleted_at") @db.Timestamptz
+  
+  branch           Branch            @relation(fields: [branchId], references: [id], onDelete: Cascade)
+  courtSports      CourtSport[]
+  timeSlots        TimeSlot[]
+  pricingRules     PricingRule[]
+  blockedDates     BlockedDate[]
+  maintenanceSlots MaintenanceSlot[]
+  bookingSlots     BookingSlot[]
+  reviews          Review[]
+
+  @@map("courts")
+}
+
+model Sport {
+  id           String        @id @default(uuid()) @db.Uuid
+  name         String        @unique @db.VarChar(100)
+  minPlayers   Int           @default(1) @map("min_players")
+  maxPlayers   Int           @map("max_players")
+  isActive     Boolean       @default(true) @map("is_active")
+  createdAt    DateTime      @default(now()) @map("created_at") @db.Timestamptz
+  updatedAt    DateTime      @default(now()) @updatedAt @map("updated_at") @db.Timestamptz
+  
+  courtSports  CourtSport[]
+  pricingRules PricingRule[]
+  bookingSlots BookingSlot[]
+  reviews      Review[]
+
+  @@map("sports")
+}
+
+model CourtSport {
+  courtId String @map("court_id") @db.Uuid
+  sportId String @map("sport_id") @db.Uuid
+  
+  court   Court  @relation(fields: [courtId], references: [id], onDelete: Cascade)
+  sport   Sport  @relation(fields: [sportId], references: [id], onDelete: Cascade)
+
+  @@id([courtId, sportId])
+  @@map("court_sports")
+}
+
+model TimeSlot {
+  id               String            @id @default(uuid()) @db.Uuid
+  courtId          String            @map("court_id") @db.Uuid
+  startTime        String            @map("start_time")
+  endTime          String            @map("end_time")
+  isPeak           Boolean           @default(false) @map("is_peak")
+  isActive         Boolean           @default(true) @map("is_active")
+  createdAt        DateTime          @default(now()) @map("created_at") @db.Timestamptz
+  updatedAt        DateTime          @default(now()) @updatedAt @map("updated_at") @db.Timestamptz
+  
+  court            Court             @relation(fields: [courtId], references: [id], onDelete: Cascade)
+  maintenanceSlots MaintenanceSlot[]
+  bookingSlots     BookingSlot[]
+
+  @@map("time_slots")
+}
+
+model PricingRule {
+  id              String    @id @default(uuid()) @db.Uuid
+  courtId         String    @map("court_id") @db.Uuid
+  sportId         String    @map("sport_id") @db.Uuid
+  dayType         String    @map("day_type")
+  pricingCategory String    @map("pricing_category")
+  price           Decimal   @db.Decimal(10, 2)
+  effectiveFrom   DateTime? @map("effective_from") @db.Date
+  effectiveTo     DateTime? @map("effective_to") @db.Date
+  createdAt       DateTime  @default(now()) @map("created_at") @db.Timestamptz
+  updatedAt       DateTime  @default(now()) @updatedAt @map("updated_at") @db.Timestamptz
+  
+  court           Court     @relation(fields: [courtId], references: [id], onDelete: Cascade)
+  sport           Sport     @relation(fields: [sportId], references: [id], onDelete: Cascade)
+
+  @@map("pricing_rules")
+}
+
+model BlockedDate {
+  id          String   @id @default(uuid()) @db.Uuid
+  branchId    String   @map("branch_id") @db.Uuid
+  courtId     String?  @map("court_id") @db.Uuid
+  blockedDate DateTime @map("blocked_date") @db.Date
+  reason      String   @db.VarChar(255)
+  createdAt   DateTime @default(now()) @map("created_at") @db.Timestamptz
+  updatedAt   DateTime @default(now()) @updatedAt @map("updated_at") @db.Timestamptz
+  
+  branch      Branch   @relation(fields: [branchId], references: [id], onDelete: Cascade)
+  court       Court?   @relation(fields: [courtId], references: [id], onDelete: Cascade)
+
+  @@map("blocked_dates")
+}
+
+model MaintenanceSlot {
+  id              String   @id @default(uuid()) @db.Uuid
+  courtId         String   @map("court_id") @db.Uuid
+  maintenanceDate DateTime @map("maintenance_date") @db.Date
+  timeSlotId      String   @map("time_slot_id") @db.Uuid
+  reason          String?  @db.VarChar(255)
+  createdAt       DateTime @default(now()) @map("created_at") @db.Timestamptz
+  updatedAt       DateTime @default(now()) @updatedAt @map("updated_at") @db.Timestamptz
+  
+  court           Court    @relation(fields: [courtId], references: [id], onDelete: Cascade)
+  timeSlot        TimeSlot @relation(fields: [timeSlotId], references: [id], onDelete: Cascade)
+
+  @@unique([courtId, maintenanceDate, timeSlotId])
+  @@map("maintenance_slots")
+}
+
+model Coupon {
+  id                String             @id @default(uuid()) @db.Uuid
+  code              String             @unique @db.VarChar(50)
+  discountType      String             @map("discount_type")
+  discountValue     Decimal            @map("discount_value") @db.Decimal(10, 2)
+  minBookingAmount  Decimal            @default(0.00) @map("min_booking_amount") @db.Decimal(10, 2)
+  maxDiscountAmount Decimal?           @map("max_discount_amount") @db.Decimal(10, 2)
+  usageLimit        Int?               @map("usage_limit")
+  userUsageLimit    Int                @default(1) @map("user_usage_limit")
+  expiryDate        DateTime           @map("expiry_date") @db.Timestamptz
+  isActive          Boolean            @default(true) @map("is_active")
+  createdAt         DateTime           @default(now()) @map("created_at") @db.Timestamptz
+  updatedAt         DateTime           @default(now()) @updatedAt @map("updated_at") @db.Timestamptz
+  deletedAt         DateTime?          @map("deleted_at") @db.Timestamptz
+  
+  bookings          Booking[]
+  couponRedemptions CouponRedemption[]
+
+  @@map("coupons")
+}
+
+model Booking {
+  id                 String               @id @default(uuid()) @db.Uuid
+  bookingNumber      String               @unique @map("booking_number") @db.VarChar(100)
+  userId             String?              @map("user_id") @db.Uuid
+  guestName          String?              @map("guest_name") @db.VarChar(255)
+  guestEmail         String?              @map("guest_email") @db.VarChar(255)
+  guestPhone         String?              @map("guest_phone") @db.VarChar(50)
+  couponId           String?              @map("coupon_id") @db.Uuid
+  totalPrice         Decimal              @map("total_price") @db.Decimal(10, 2)
+  discountAmount     Decimal              @default(0.00) @map("discount_amount") @db.Decimal(10, 2)
+  finalAmount        Decimal              @map("final_amount") @db.Decimal(10, 2)
+  status             String               @default("pending")
+  cancellationReason String?              @map("cancellation_reason")
+  cancelledAt        DateTime?            @map("cancelled_at") @db.Timestamptz
+  refundAmount       Decimal              @default(0.00) @map("refund_amount") @db.Decimal(10, 2)
+  qrCodeData         String?              @map("qr_code_data")
+  createdAt          DateTime             @default(now()) @map("created_at") @db.Timestamptz
+  updatedAt          DateTime             @default(now()) @updatedAt @map("updated_at") @db.Timestamptz
+  
+  user               User?                @relation(fields: [userId], references: [id], onDelete: SetNull)
+  coupon             Coupon?              @relation(fields: [couponId], references: [id], onDelete: Restrict)
+  bookingSlots       BookingSlot[]
+  payments           Payment[]
+  couponRedemptions  CouponRedemption[]
+  loyaltyTransactions LoyaltyTransaction[]
+  reviews            Review[]
+
+  @@map("bookings")
+}
+
+model BookingSlot {
+  id           String   @id @default(uuid()) @db.Uuid
+  bookingId    String   @map("booking_id") @db.Uuid
+  courtId      String   @map("court_id") @db.Uuid
+  sportId      String   @map("sport_id") @db.Uuid
+  timeSlotId   String   @map("time_slot_id") @db.Uuid
+  bookingDate  DateTime @map("booking_date") @db.Date
+  priceCharged Decimal  @map("price_charged") @db.Decimal(10, 2)
+  createdAt    DateTime @default(now()) @map("created_at") @db.Timestamptz
+  updatedAt    DateTime @default(now()) @updatedAt @map("updated_at") @db.Timestamptz
+  
+  booking      Booking  @relation(fields: [bookingId], references: [id], onDelete: Cascade)
+  court        Court    @relation(fields: [courtId], references: [id], onDelete: Restrict)
+  sport        Sport    @relation(fields: [sportId], references: [id], onDelete: Restrict)
+  timeSlot     TimeSlot @relation(fields: [timeSlotId], references: [id], onDelete: Restrict)
+
+  @@unique([courtId, bookingDate, timeSlotId])
+  @@map("booking_slots")
+}
+
+model Payment {
+  id                 String   @id @default(uuid()) @db.Uuid
+  bookingId          String   @map("booking_id") @db.Uuid
+  paymentMethod      String   @map("payment_method")
+  gatewayOrderId     String?  @map("gateway_order_id") @db.VarChar(255)
+  gatewayPaymentId   String?  @map("gateway_payment_id") @db.VarChar(255)
+  gatewaySignature   String?  @map("gateway_signature") @db.VarChar(255)
+  amount             Decimal  @db.Decimal(10, 2)
+  status             String   @default("pending")
+  refundTransactionId String?  @map("refund_transaction_id") @db.VarChar(255)
+  createdAt          DateTime @default(now()) @map("created_at") @db.Timestamptz
+  updatedAt          DateTime @default(now()) @updatedAt @map("updated_at") @db.Timestamptz
+  
+  booking            Booking  @relation(fields: [bookingId], references: [id], onDelete: Restrict)
+
+  @@map("payments")
+}
+
+model CouponRedemption {
+  id         String   @id @default(uuid()) @db.Uuid
+  couponId   String   @map("coupon_id") @db.Uuid
+  userId     String?  @map("user_id") @db.Uuid
+  bookingId  String   @map("booking_id") @db.Uuid
+  redeemedAt DateTime @default(now()) @map("redeemed_at") @db.Timestamptz
+  
+  coupon     Coupon   @relation(fields: [couponId], references: [id], onDelete: Restrict)
+  user       User?    @relation(fields: [userId], references: [id], onDelete: SetNull)
+  booking    Booking  @relation(fields: [bookingId], references: [id], onDelete: Cascade)
+
+  @@map("coupon_redemptions")
+}
+
+model LoyaltyTransaction {
+  id              String   @id @default(uuid()) @db.Uuid
+  userId          String   @map("user_id") @db.Uuid
+  bookingId       String?  @map("booking_id") @db.Uuid
+  pointsChange    Int      @map("points_change")
+  transactionType String   @map("transaction_type")
+  createdAt       DateTime @default(now()) @map("created_at") @db.Timestamptz
+  
+  user            User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  booking         Booking? @relation(fields: [bookingId], references: [id], onDelete: SetNull)
+
+  @@map("loyalty_transactions")
+}
+
+model Review {
+  id         String   @id @default(uuid()) @db.Uuid
+  bookingId  String?  @map("booking_id") @db.Uuid
+  userId     String?  @map("user_id") @db.Uuid
+  courtId    String   @map("court_id") @db.Uuid
+  sportId    String   @map("sport_id") @db.Uuid
+  rating     Int
+  comment    String
+  isApproved Boolean  @default(true) @map("is_approved")
+  createdAt  DateTime @default(now()) @map("created_at") @db.Timestamptz
+  updatedAt  DateTime @default(now()) @updatedAt @map("updated_at") @db.Timestamptz
+  
+  booking    Booking? @relation(fields: [bookingId], references: [id], onDelete: SetNull)
+  user       User?    @relation(fields: [userId], references: [id], onDelete: SetNull)
+  court      Court    @relation(fields: [courtId], references: [id], onDelete: Cascade)
+  sport      Sport    @relation(fields: [sportId], references: [id], onDelete: Cascade)
+
+  @@map("reviews")
+}
+
+model NotificationTemplate {
+  id           String   @id @default(uuid()) @db.Uuid
+  name         String   @unique @db.VarChar(100)
+  channels     String[]
+  subject      String?  @db.VarChar(255)
+  bodyTemplate String   @map("body_template")
+  createdAt    DateTime @default(now()) @map("created_at") @db.Timestamptz
+  updatedAt    DateTime @default(now()) @updatedAt @map("updated_at") @db.Timestamptz
+
+  @@map("notification_templates")
+}
+
+model Notification {
+  id        String   @id @default(uuid()) @db.Uuid
+  userId    String?  @map("user_id") @db.Uuid
+  recipient String   @db.VarChar(255)
+  channel   String
+  subject   String?  @db.VarChar(255)
+  message   String
+  status    String   @default("pending")
+  errorLog  String?  @map("error_log")
+  createdAt DateTime @default(now()) @map("created_at") @db.Timestamptz
+  
+  user      User?    @relation(fields: [userId], references: [id], onDelete: SetNull)
+
+  @@map("notifications")
+}
+
+model Setting {
+  id        String   @id @default(uuid()) @db.Uuid
+  branchId  String   @map("branch_id") @db.Uuid
+  key       String   @db.VarChar(100)
+  value     String   @db.VarChar(255)
+  valueType String   @default("string") @map("value_type")
+  createdAt DateTime @default(now()) @map("created_at") @db.Timestamptz
+  updatedAt DateTime @default(now()) @updatedAt @map("updated_at") @db.Timestamptz
+  
+  branch    Branch   @relation(fields: [branchId], references: [id], onDelete: Cascade)
+
+  @@unique([branchId, key])
+  @@map("settings")
+}
+
+model AuditLog {
+  id        String   @id @default(uuid()) @db.Uuid
+  userId    String?  @map("user_id") @db.Uuid
+  action    String   @db.VarChar(100)
+  tableName String   @map("table_name") @db.VarChar(100)
+  recordId  String   @map("record_id") @db.Uuid
+  oldValues Json?    @map("old_values")
+  newValues Json?    @map("new_values")
+  ipAddress String?  @map("ip_address") @db.VarChar(45)
+  userAgent String?  @map("user_agent")
+  createdAt DateTime @default(now()) @map("created_at") @db.Timestamptz
+  
+  user      User?    @relation(fields: [userId], references: [id], onDelete: SetNull)
+
+  @@map("audit_logs")
+}
