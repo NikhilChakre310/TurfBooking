@@ -26,11 +26,17 @@ export async function POST(req) {
     }
 
     if (!user) {
-      // Return ambiguous message for security to prevent user enumeration
-      return NextResponse.json({
-        success: true,
-        message: 'If an account with that email exists, a password reset link and security code have been sent.'
-      });
+      if (global.isMockDB) {
+        // In serverless mock mode, memory state resets between requests. 
+        // We bypass the check here so the user can test the email flow.
+        user = { name: 'Player', email: emailLower };
+      } else {
+        // Return ambiguous message for security to prevent user enumeration
+        return NextResponse.json({
+          success: true,
+          message: 'If an account with that email exists, a password reset link and security code have been sent.'
+        });
+      }
     }
 
     const resetCode = Math.floor(100000 + Math.random() * 900000).toString();
