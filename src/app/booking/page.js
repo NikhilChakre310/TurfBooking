@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, Suspense } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import Header from '@/components/Header';
 import Footer from '@/components/Footer';
@@ -8,7 +8,7 @@ import { useApp } from '@/context/AppContext';
 import { Calendar, Tag, ShieldCheck, Ticket, Users, Phone, Mail, User, AlertCircle, Award } from 'lucide-react';
 import confetti from 'canvas-confetti';
 
-export default function BookingPage() {
+function BookingContent() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const { user, loading: authLoading, getApiUrl } = useApp();
@@ -605,5 +605,17 @@ export default function BookingPage() {
 
       <Footer />
     </div>
+  );
+}
+
+export default function BookingPage() {
+  return (
+    <Suspense fallback={
+      <div className="min-h-screen bg-black text-white flex items-center justify-center font-mono text-sm tracking-wider">
+        LOADING BOOKING SYSTEM...
+      </div>
+    }>
+      <BookingContent />
+    </Suspense>
   );
 }

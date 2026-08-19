@@ -2,7 +2,7 @@ import { NextResponse } from 'next/server';
 import crypto from 'crypto';
 import prisma from '@/lib/prisma';
 import { getAuthUser } from '@/lib/jwt';
-import { getDefaultConfig } from '../slots/route';
+import { getDefaultConfig } from '@/app/api/slots/route';
 import { sendNotification } from '@/lib/notifications';
 
 export async function POST(req) {
