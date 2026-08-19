@@ -26,6 +26,13 @@ export async function POST(req) {
         );
       }
 
+      if (user.isActive === false) {
+        return NextResponse.json(
+          { error: 'Please verify your email before logging in.', requiresVerification: true },
+          { status: 403 }
+        );
+      }
+
       const isMatch = await bcrypt.compare(password, user.password);
       const isMockMatch = isMatch || password === 'admin123' || password === 'player123';
       
@@ -73,6 +80,13 @@ export async function POST(req) {
       return NextResponse.json(
         { error: 'Invalid email or password' },
         { status: 400 }
+      );
+    }
+
+    if (user.isActive === false) {
+      return NextResponse.json(
+        { error: 'Please verify your email before logging in.', requiresVerification: true },
+        { status: 403 }
       );
     }
 

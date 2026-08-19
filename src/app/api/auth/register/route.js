@@ -39,28 +39,15 @@ export async function POST(req) {
         password: hashedPassword,
         phone,
         role,
+        isActive: false,
         loyaltyPoints: 100,
       };
 
       global.mockUsers.push(newUser);
 
-      const token = signToken({
-        userId: newUser._id,
-        email: newUser.email,
-        role: newUser.role,
-      });
-
       return NextResponse.json({
-        message: 'Registration successful (Mock Mode)',
-        token,
-        user: {
-          id: newUser._id,
-          name: newUser.name,
-          email: newUser.email,
-          phone: newUser.phone,
-          role: newUser.role,
-          loyaltyPoints: newUser.loyaltyPoints,
-        },
+        message: 'Registration successful. Please verify your email.',
+        requiresVerification: true,
       }, { status: 201 });
     }
 
@@ -108,7 +95,7 @@ export async function POST(req) {
         email: emailLower,
         passwordHash: hashedPassword,
         phone,
-        isActive: true,
+        isActive: false,
         userRoles: {
           create: {
             roleId: targetRole.id
@@ -123,27 +110,9 @@ export async function POST(req) {
       }
     });
 
-    // Resolve returning role (super_admin = admin, customer = user)
-    const mappedRole = roleName === 'super_admin' ? 'admin' : 'user';
-
-    // Create JWT
-    const token = signToken({
-      userId: newUser.id,
-      email: newUser.email,
-      role: mappedRole,
-    });
-
     return NextResponse.json({
-      message: 'Registration successful',
-      token,
-      user: {
-        id: newUser.id,
-        name: newUser.name,
-        email: newUser.email,
-        phone: newUser.phone,
-        role: mappedRole,
-        loyaltyPoints: 100, // 100 welcome points accrued via transaction
-      },
+      message: 'Registration successful. Please verify your email.',
+      requiresVerification: true,
     }, { status: 201 });
   } catch (error) {
     console.error('Registration error:', error);

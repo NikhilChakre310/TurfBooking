@@ -50,16 +50,28 @@ export default function UserLoginPage() {
 
       const data = await res.json();
       if (!res.ok) {
+        if (data.requiresVerification) {
+          // If login requires verification, switch to verify mode
+          setMode('verify');
+          setSuccessMsg(data.error);
+          return;
+        }
         throw new Error(data.error || 'Authentication failed');
       }
 
-      // Automatically trigger email verification dispatch on register
-      if (mode === 'register') {
+      if (mode === 'register' && data.requiresVerification) {
+        // Switch to OTP verification mode immediately after registration
+        setMode('verify');
+        setSuccessMsg(data.message);
+        
+        // Trigger email dispatch in the background
         fetch(getApiUrl('/api/auth/verify-email'), {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({ action: 'send', email }),
         }).catch(e => console.log(e));
+        
+        return; // Halt here; do not log the user in yet
       }
 
       login(data.user, data.token);
