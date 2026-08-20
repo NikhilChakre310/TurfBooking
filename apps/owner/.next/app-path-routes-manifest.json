@@ -1,0 +1,18 @@
+{
+  "/_global-error/page": "/_global-error",
+  "/_not-found/page": "/_not-found",
+  "/api/admin/route": "/api/admin",
+  "/api/auth/forgot-password/route": "/api/auth/forgot-password",
+  "/api/auth/login/route": "/api/auth/login",
+  "/api/auth/register/route": "/api/auth/register",
+  "/api/auth/reset-password/route": "/api/auth/reset-password",
+  "/api/auth/verify-email/route": "/api/auth/verify-email",
+  "/api/bookings/cancel/route": "/api/bookings/cancel",
+  "/api/bookings/route": "/api/bookings",
+  "/api/coupons/validate/route": "/api/coupons/validate",
+  "/api/payment/verify/route": "/api/payment/verify",
+  "/api/slots/route": "/api/slots",
+  "/favicon.ico/route": "/favicon.ico",
+  "/login/page": "/login",
+  "/page": "/"
+}

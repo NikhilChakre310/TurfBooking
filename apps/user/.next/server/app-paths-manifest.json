@@ -1,0 +1,22 @@
+{
+  "/_global-error/page": "app/_global-error/page.js",
+  "/_not-found/page": "app/_not-found/page.js",
+  "/admin/dashboard/page": "app/admin/dashboard/page.js",
+  "/admin/login/page": "app/admin/login/page.js",
+  "/api/admin/route": "app/api/admin/route.js",
+  "/api/auth/forgot-password/route": "app/api/auth/forgot-password/route.js",
+  "/api/auth/login/route": "app/api/auth/login/route.js",
+  "/api/auth/register/route": "app/api/auth/register/route.js",
+  "/api/auth/reset-password/route": "app/api/auth/reset-password/route.js",
+  "/api/auth/verify-email/route": "app/api/auth/verify-email/route.js",
+  "/api/bookings/cancel/route": "app/api/bookings/cancel/route.js",
+  "/api/bookings/route": "app/api/bookings/route.js",
+  "/api/coupons/validate/route": "app/api/coupons/validate/route.js",
+  "/api/payment/verify/route": "app/api/payment/verify/route.js",
+  "/api/slots/route": "app/api/slots/route.js",
+  "/booking/page": "app/booking/page.js",
+  "/dashboard/page": "app/dashboard/page.js",
+  "/favicon.ico/route": "app/favicon.ico/route.js",
+  "/login/page": "app/login/page.js",
+  "/page": "app/page.js"
+}
